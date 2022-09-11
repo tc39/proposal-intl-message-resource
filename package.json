@@ -1,16 +1,16 @@
 {
+  "name": "proposal-intl-message-resource",
+  "description": "A TC39 proposal for Intl.MessageFormat.parseResource()",
   "private": true,
-  "name": "template-for-proposals",
-  "description": "A repository template for ECMAScript proposals.",
   "scripts": {
     "start": "npm run build-loose -- --watch",
     "build": "npm run build-loose -- --strict",
     "build-loose": "ecmarkup --load-biblio @tc39/ecma262-biblio --verbose spec.emu index.html --lint-spec"
   },
-  "homepage": "https://github.com/tc39/template-for-proposals#readme",
+  "homepage": "https://github.com/eemeli/proposal-intl-message-resource",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tc39/template-for-proposals.git"
+    "url": "git+https://github.com/eemeli/proposal-intl-message-resource.git"
   },
   "license": "MIT",
   "devDependencies": {
