@@ -1,61 +1,82 @@
-# template-for-proposals
+# Intl.MessageFormat.parseResource()
 
-A repository template for ECMAScript proposals.
+This is a follow-on proposal to the [Intl.MessageFormat proposal](https://github.com/tc39/proposal-intl-messageformat),
+adding support for handling entire resources (aka bundles) of messages,
+in addition to supporting individual messages.
 
-## Before creating a proposal
+## Status
 
-Please ensure the following:
-  1. You have read the [process document](https://tc39.github.io/process-document/)
-  1. You have reviewed the [existing proposals](https://github.com/tc39/proposals/)
-  1. You are aware that your proposal requires being a member of TC39, or locating a TC39 delegate to "champion" your proposal
+Champion: Eemeli Aro (Mozilla/OpenJS Foundation)
 
-## Create your proposal repo
+### Stage: -1
 
-Follow these steps:
-  1. Click the green ["use this template"](https://github.com/tc39/template-for-proposals/generate) button in the repo header. (Note: Do not fork this repo in GitHub's web interface, as that will later prevent transfer into the TC39 organization)
-  1. Update the biblio to the latest version: `npm install --save-dev --save-exact @tc39/ecma262-biblio@latest`.
-  1. Go to your repo settings “Options” page, under “GitHub Pages”, and set the source to the **main branch** under the root (and click Save, if it does not autosave this setting)
-      1. check "Enforce HTTPS"
-      1. On "Options", under "Features", Ensure "Issues" is checked, and disable "Wiki", and "Projects" (unless you intend to use Projects)
-      1. Under "Merge button", check "automatically delete head branches"
-<!--
-  1. Avoid merge conflicts with build process output files by running:
-      ```sh
-      git config --local --add merge.output.driver true
-      git config --local --add merge.output.driver true
-      ```
-  1. Add a post-rewrite git hook to auto-rebuild the output on every commit:
-      ```sh
-      cp hooks/post-rewrite .git/hooks/post-rewrite
-      chmod +x .git/hooks/post-rewrite
-      ```
--->
-  3. ["How to write a good explainer"][explainer] explains how to make a good first impression.
+## Motivation and Use Cases
 
-      > Each TC39 proposal should have a `README.md` file which explains the purpose
-      > of the proposal and its shape at a high level.
-      >
-      > ...
-      >
-      > The rest of this page can be used as a template ...
+In most use cases, systems that have a need to format messages need to format more than one such message.
+For example, a dialog box may include a title, description, and one or more buttons with labels.
+These messages need to be handled together as a cohesive unit,
+both when editing or translating, as well as when formatting.
 
-      Your explainer can point readers to the `index.html` generated from `spec.emu`
-      via markdown like
+To enable this, a message resource syntax is being developed in parallel with the MessageFormat 2.0 specification.
+This proposal adds a static method `Intl.MessageFormat.parseResource()` that allows for parsing such resources.
+Such a method would allow for MF2 messages to be stored and transmitted in a purpose-built container,
+rather than needing to be separately parsed for use in JavaScript environments.
 
-      ```markdown
-      You can browse the [ecmarkup output](https://ACCOUNT.github.io/PROJECT/)
-      or browse the [source](https://github.com/ACCOUNT/PROJECT/blob/HEAD/spec.emu).
-      ```
+## API Description
 
-      where *ACCOUNT* and *PROJECT* are the first two path elements in your project's Github URL.
-      For example, for github.com/**tc39**/**template-for-proposals**, *ACCOUNT* is "tc39"
-      and *PROJECT* is "template-for-proposals".
+As a baseline, this proposal presumes the existence of `Intl.MessageFormat` as described in its proposal,
+and extends it.
 
+### MessageFormat.parseResource(resource, locales?, options?)
 
-## Maintain your proposal repo
+This static method parses a string representation of an MF2 resource,
+constructing a Map with a corresponding structure of `MessageFormat` instances for each of the resource's messages.
+Its `locales` and `options` arguments are used to construct each such instance.
 
-  1. Make your changes to `spec.emu` (ecmarkup uses HTML syntax, but is not HTML, so I strongly suggest not naming it ".html")
-  1. Any commit that makes meaningful changes to the spec, should run `npm run build` and commit the resulting output.
-  1. Whenever you update `ecmarkup`, run `npm run build` and commit any changes that come from that dependency.
+A `MessageResource` is a Map representing a collection of related messages for a single locale.
+Messages can be organized in a flat structure, or in hierarchy, using paths.
+Conceptually, it is similar to a file containing a set of messages,
+but there are no constrains implied on the underlying implementation.
 
-  [explainer]: https://github.com/tc39/how-we-work/blob/HEAD/explainer.md
+```ts
+type MessageResource = Map<string, Intl.MessageFormat | MessageResource>;
+
+class Intl.MessageFormat {
+  static parseResource(
+    resource: string,
+    locales?: string | string[],
+    options?: MessageFormatOptions
+  ): MessageResource;
+
+  ...
+}
+```
+
+## Example
+
+Given an MF2 resource as follows:
+
+```ini
+# Note! MF2 syntax is under development; this may still change
+
+greeting = {Hello {$place}!}
+
+new_notifications =
+  match {$count}
+  when 0   {You have no new notifications}
+  when one {You have one new notification}
+  when *   {You have {$count} new notifications}
+```
+
+This could be used in code like this:
+
+```js
+const source = ... // string source of resource as above
+const res = Intl.MessageFormat.parseResource(source, ['en']);
+
+const greeting = res.get('greeting').resolveMessage({ place: 'world' });
+greeting.toString(); // 'Hello world!'
+
+const notifications = res.get('new_notifications').resolveMessage({ count: 1 });
+notifications.toString(); // 'You have one new notification'
+```
