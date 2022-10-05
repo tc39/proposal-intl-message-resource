@@ -64,7 +64,7 @@ greeting = {Hello {$place}!}
 new_notifications =
   match {$count}
   when 0   {You have no new notifications}
-  when one {You have one new notification}
+  when one {You have {$count} new notification}
   when *   {You have {$count} new notifications}
 ```
 
@@ -78,5 +78,5 @@ const greeting = res.get('greeting').resolveMessage({ place: 'world' });
 greeting.toString(); // 'Hello world!'
 
 const notifications = res.get('new_notifications').resolveMessage({ count: 1 });
-notifications.toString(); // 'You have one new notification'
+notifications.toString(); // 'You have 1 new notification'
 ```
