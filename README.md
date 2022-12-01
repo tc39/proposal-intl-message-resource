@@ -8,7 +8,7 @@ in addition to supporting individual messages.
 
 Champion: Eemeli Aro (Mozilla/OpenJS Foundation)
 
-### Stage: -1
+### Stage: 1
 
 ## Motivation and Use Cases
 
